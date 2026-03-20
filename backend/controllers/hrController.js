@@ -1,5 +1,41 @@
 const Candidate = require('../models/Candidate');
 const Roadmap = require('../models/Roadmap');
+const OpenAI = require("openai");
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+const generateRoadmap = async (resumeText) => {
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `
+        Analyze resume and return JSON:
+        {
+          "skills": [],
+          "experience": "",
+          "projects": [],
+          "roadmap": [
+            {
+              "title": "",
+              "tasks": [{ "title": "" }]
+            }
+          ]
+        }
+        `
+      },
+      { role: "user", content: resumeText }
+    ]
+  });
+
+  const content = response.choices[0].message.content;
+  const cleanContent = content.replace(/```json/gi, "").replace(/```/g, "").trim();
+  return JSON.parse(cleanContent);
+};
 
 const getHRDashboard = async (req, res) => {
   try {
@@ -24,38 +60,46 @@ const getHRDashboard = async (req, res) => {
 // UPLOAD RESUME
 const uploadResume = async (req, res) => {
   try {
-    const { name, email, assignedTrainer } = req.body;
+    const { name, email, assignedTrainer, resumeText } = req.body;
 
-    const roadmapData = [
-      {
-        title: "Phase 1",
-        tasks: [{ title: "Learn Basics" }, { title: "Practice" }]
-      }
-    ];
+    if (!resumeText) {
+      return res.status(400).json({ success: false, message: "Please provide resume text." });
+    }
+
+    // Generate Roadmap using AI
+    const aiResponse = await generateRoadmap(resumeText);
+    const roadmapData = aiResponse.roadmap || [];
 
     const candidate = await Candidate.create({
       name,
       email,
       assignedTrainer,
+      aiInsight: JSON.stringify({
+        skills: aiResponse.skills || [],
+        experience: aiResponse.experience || "",
+        projects: aiResponse.projects || []
+      }),
       statusHistory: [{ status: "PENDING" }]
     });
 
     const roadmap = await Roadmap.create({
       candidateId: candidate._id,
       content: roadmapData,
-      aiConfidence: 90
+      aiConfidence: 85 // Can be made dynamic if AI provides it
     });
 
     candidate.roadmapId = roadmap._id;
     await candidate.save();
 
-    res.json({ success: true, candidate });
+    res.json({ success: true, candidate, roadmap });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("AI Generation Error:", err);
+    res.status(500).json({ success: false, message: err.message || "Failed to generate roadmap" });
   }
 };
 
 module.exports = {
   getHRDashboard,
-  uploadResume
+  uploadResume,
+  generateRoadmap
 };
