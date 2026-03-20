@@ -1,45 +1,47 @@
-const Candidate = require('../models/Candidate');
+const getHRDashboard = async (req, res) => {
+  const [total, rejected, approved, inProgress] = await Promise.all([
+    Candidate.countDocuments(),
+    Candidate.countDocuments({ status: "REJECTED" }),
+    Candidate.countDocuments({ status: "APPROVED" }),
+    Candidate.countDocuments({ status: "IN_PROGRESS" })
+  ]);
 
-// @desc    Get all candidates and pipeline stats
-// @route   GET /api/hr/dashboard
-// @access  Private/HR
-exports.getDashboardData = async (req, res) => {
-  try {
-    const candidates = await Candidate.find({});
+  const recent = await Candidate.find()
+    .populate("roadmapId")
+    .sort({ createdAt: -1 })
+    .limit(10);
 
-    const totalCandidates = candidates.length;
-    const inReview = candidates.filter(c => c.status === 'IN REVIEW').length;
-    const inTraining = candidates.filter(c => c.status === 'IN TRAINING').length;
-    const completed = candidates.filter(c => c.status === 'COMPLETED').length;
-
-    res.status(200).json({
-      success: true,
-      data: {
-        stats: {
-          totalCandidates,
-          inReview,
-          inTraining,
-          completed
-        },
-        candidates
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+  res.json({ total, rejected, approved, inProgress, recent });
 };
 
-// @desc    Add a new candidate (for testing/seeding)
-// @route   POST /api/hr/candidates
-// @access  Private/HR
-exports.addCandidate = async (req, res) => {
-  try {
-    const candidate = await Candidate.create(req.body);
-    res.status(201).json({
-      success: true,
-      data: candidate
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+
+// UPLOAD RESUME
+const uploadResume = async (req, res) => {
+  const { name, email, assignedTrainer } = req.body;
+
+  const roadmapData = [
+    {
+      title: "Phase 1",
+      tasks: [{ title: "Learn Basics" }, { title: "Practice" }]
+    }
+  ];
+
+  const candidate = await Candidate.create({
+    name,
+    email,
+    assignedTrainer,
+    statusHistory: [{ status: "PENDING" }]
+  });
+
+  const roadmap = await Roadmap.create({
+    candidateId: candidate._id,
+    content: roadmapData,
+    aiConfidence: 90
+  });
+
+  candidate.roadmapId = roadmap._id;
+  await candidate.save();
+
+  res.json({ success: true });
 };
+
