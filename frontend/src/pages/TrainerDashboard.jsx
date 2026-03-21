@@ -5,13 +5,13 @@ import CustomDropdown from '../components/CustomDropdown';
 function TrainerDashboard() {
   const navigate = useNavigate();
   const [showSuggestion, setShowSuggestion] = useState(true);
-  
+
   // Data State
   const [candidates, setCandidates] = useState([]);
-  const [stats, setStats] = useState({ 
-    total: 0, 
-    pending: 0, 
-    inTraining: 0, 
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    inTraining: 0,
     completed: 0
   });
 
@@ -26,11 +26,11 @@ function TrainerDashboard() {
     const fetchDashboard = async () => {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-        const res = await fetch('http://localhost:3000/api/trainer/dashboard', {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/dashboard`, {
           headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
         });
         const data = await res.json();
-        
+
         if (data && data.stats) {
           setStats({
             total: data.stats.total || 0,
@@ -44,18 +44,18 @@ function TrainerDashboard() {
               const c = roadmap.candidateId || {};
               const candidateStatus = (c.status || 'PENDING').toUpperCase();
               const statusColors = {
-                'PENDING':     'text-secondary',
-                'IN REVIEW':   'text-amber-400',
+                'PENDING': 'text-secondary',
+                'IN REVIEW': 'text-amber-400',
                 'IN_PROGRESS': 'text-secondary',
                 'IN TRAINING': 'text-secondary',
-                'APPROVED':    'text-emerald-400',
-                'REJECTED':    'text-error',
-                'COMPLETED':   'text-primary'
+                'APPROVED': 'text-emerald-400',
+                'REJECTED': 'text-error',
+                'COMPLETED': 'text-primary'
               };
-              
-              const initials = c.name ? c.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '??';
+
+              const initials = c.name ? c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '??';
               const appliedDate = roadmap.createdAt ? new Date(roadmap.createdAt).toLocaleDateString() : 'Unknown';
-              
+
               return {
                 id: c._id,
                 roadmapId: roadmap._id,
@@ -134,7 +134,7 @@ function TrainerDashboard() {
             <p className="text-sm text-slate-500">AI-generated curricula awaiting trainer verification</p>
           </div>
           <div className="flex items-center gap-3">
-            <CustomDropdown 
+            <CustomDropdown
               label="Status"
               value={statusFilter}
               onChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}
@@ -163,15 +163,15 @@ function TrainerDashboard() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {currentData.map((c) => (
-                <tr 
-                  key={c.id} 
+                <tr
+                  key={c.id}
                   onClick={() => {
                     if (c.status === 'Pending') {
                       navigate(`/trainer/review/${c.id}`);
                     } else {
                       navigate(`/trainer/candidate/${c.id}`);
                     }
-                  }} 
+                  }}
                   className="hover:bg-white/[0.02] transition-all cursor-pointer group"
                 >
                   <td className="px-8 py-5">
@@ -220,7 +220,7 @@ function TrainerDashboard() {
             Showing <span className="text-white font-bold">{currentData.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}</span> to <span className="text-white font-bold">{Math.min(currentPage * rowsPerPage, filteredCandidates.length)}</span> of <span className="text-white font-bold">{filteredCandidates.length}</span> candidates
           </p>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className="w-10 h-10 rounded-xl bg-[#1a2236] border border-white/10 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 transition-all active:scale-95"
@@ -238,7 +238,7 @@ function TrainerDashboard() {
                 </button>
               ))}
             </div>
-            <button 
+            <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className="w-10 h-10 rounded-xl bg-[#1a2236] border border-white/10 flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-30 transition-all active:scale-95"

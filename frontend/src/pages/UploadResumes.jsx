@@ -19,7 +19,7 @@ function UploadResumes() {
   const uploadToBackend = async (file) => {
     setIsProcessing(true);
     setUploadProgress(0);
-    
+
     // Simulate upload progress capping at 90%
     const interval = setInterval(() => {
       setUploadProgress(prev => (prev >= 90 ? 90 : prev + 10));
@@ -35,7 +35,7 @@ function UploadResumes() {
       // We need authorization token if not using a session cookie
       const token = localStorage.getItem('token') || localStorage.getItem('userToken');
 
-      const response = await fetch('http://localhost:3000/api/hr/upload', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/hr/upload`, {
         method: 'POST',
         headers: {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -44,7 +44,7 @@ function UploadResumes() {
       });
 
       const data = await response.json();
-      
+
       clearInterval(interval);
       setUploadProgress(100);
 
@@ -80,32 +80,32 @@ function UploadResumes() {
 
       <div className="w-full max-w-3xl space-y-8">
         {/* Hidden File Input */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileSelect} 
-          multiple 
-          accept=".pdf,.doc,.docx" 
-          className="hidden" 
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          multiple
+          accept=".pdf,.doc,.docx"
+          className="hidden"
         />
 
         {/* Drag & Drop / Upload Card */}
-        <div 
+        <div
           onClick={handleBrowseClick}
           className="relative group cursor-pointer"
         >
           <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
           <div className="relative bg-[#1a2236] rounded-3xl p-16 border border-white/5 flex flex-col items-center justify-center text-center hover:bg-[#2d3449]/50 transition-all duration-500 overflow-hidden">
-            
+
             {isProcessing ? (
               <div className="w-full space-y-8 animate-fade-in">
                 <div className="relative h-24 w-24 mx-auto">
-                   <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-                   <div className="relative h-24 w-24 bg-surface-container-highest rounded-full flex items-center justify-center border border-primary/30 shadow-2xl">
-                     <span className="material-symbols-outlined text-4xl text-primary animate-spin">neurology</span>
-                   </div>
+                  <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                  <div className="relative h-24 w-24 bg-surface-container-highest rounded-full flex items-center justify-center border border-primary/30 shadow-2xl">
+                    <span className="material-symbols-outlined text-4xl text-primary animate-spin">neurology</span>
+                  </div>
                 </div>
-                
+
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-2">Analyzing Resumes</h3>
                   <p className="text-slate-400">SkillPath AI is extracting skill signatures...</p>
@@ -120,13 +120,13 @@ function UploadResumes() {
                     <div className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
                   </div>
                 </div>
-                
+
                 {uploadProgress === 100 && (
-                   <div className="pt-4 animate-bounce">
-                     <span className="px-4 py-2 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 text-xs font-bold uppercase tracking-widest">
-                       Analysis Complete
-                     </span>
-                   </div>
+                  <div className="pt-4 animate-bounce">
+                    <span className="px-4 py-2 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 text-xs font-bold uppercase tracking-widest">
+                      Analysis Complete
+                    </span>
+                  </div>
                 )}
               </div>
             ) : (

@@ -14,7 +14,7 @@ function RoadmapReview() {
     const fetchCandidate = async () => {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-        const res = await fetch(`http://localhost:3000/api/trainer/candidate/${id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/candidate/${id}`, {
           headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
         });
         const data = await res.json();
@@ -35,7 +35,7 @@ function RoadmapReview() {
   const handleReview = async (action) => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-      const res = await fetch(`http://localhost:3000/api/trainer/roadmap/${roadmap._id}/review`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/roadmap/${roadmap._id}/review`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

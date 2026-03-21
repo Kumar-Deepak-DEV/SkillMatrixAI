@@ -21,7 +21,7 @@ function Candidates() {
     const fetchCandidates = async () => {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-        const res = await fetch('http://localhost:3000/api/trainer/candidates', {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/candidates`, {
           headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
         });
         const data = await res.json();

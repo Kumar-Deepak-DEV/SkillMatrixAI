@@ -20,7 +20,7 @@ function HRDashboard() {
     const fetchDashboard = async () => {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-        const res = await fetch('http://localhost:3000/api/hr/dashboard', {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/hr/dashboard`, {
           headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
         });
         const data = await res.json();

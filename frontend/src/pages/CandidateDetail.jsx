@@ -15,7 +15,7 @@ function CandidateDetail() {
     const fetchCandidate = async () => {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-        const res = await fetch(`http://localhost:3000/api/trainer/candidate/${id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/candidate/${id}`, {
           headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
         });
         const data = await res.json();
@@ -37,7 +37,7 @@ function CandidateDetail() {
   const handleDownloadCV = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('userToken');
     // Open download URL directly — browser will prompt a Save dialog
-    const url = `http://localhost:3000/api/trainer/candidate/${id}/download-cv`;
+    const url = `${import.meta.env.VITE_API_BASE_URL}/api/trainer/candidate/${id}/download-cv`;
     const a = document.createElement('a');
     a.href = url;
     a.target = '_blank';
@@ -48,7 +48,7 @@ function CandidateDetail() {
   const handleComplete = async () => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-      const res = await fetch(`http://localhost:3000/api/trainer/candidate/${id}/complete`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/candidate/${id}/complete`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ function CandidateDetail() {
                           e.preventDefault();
                           const token = localStorage.getItem('token') || localStorage.getItem('userToken');
                           try {
-                            const res = await fetch(`http://localhost:3000/api/trainer/roadmap/${roadmap._id}/task/toggle`, {
+                            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/trainer/roadmap/${roadmap._id}/task/toggle`, {
                               method: 'POST',
                               headers: {
                                 'Content-Type': 'application/json',

@@ -14,7 +14,7 @@ function HRCandidateProfile() {
   const fetchCandidate = async () => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-      const res = await fetch(`http://localhost:3000/api/hr/candidate/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/hr/candidate/${id}`, {
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });
       const data = await res.json();
@@ -37,7 +37,7 @@ function HRCandidateProfile() {
     setResubmitMsg('');
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('userToken');
-      const res = await fetch(`http://localhost:3000/api/hr/candidate/${id}/resubmit`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/hr/candidate/${id}/resubmit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
