@@ -1,22 +1,69 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-const roadmapSteps = [
-  { id: 1, icon: 'done', label: 'System Architectures', sub: 'Completed · Oct 12', state: 'done' },
-  { id: 2, icon: 'play_arrow', label: 'Advanced React Systems', sub: 'Ongoing · 65% Complete', state: 'active', progress: 65 },
-  { id: 3, icon: 'lock', label: 'Vector Data & Search', sub: 'Pending', state: 'locked' },
-  { id: 4, icon: 'lock', label: 'AI Orchestration Deployment', sub: 'Pending', state: 'locked' },
-];
-
-const insights = [
-  { id: 1, name: 'Marcus Thorne', time: '2 Days Ago', text: "Excellent performance on the technical screen. Her architectural logic is sound, but we should push her towards more complex data state management in the next sprint.", avatar: null },
-  { id: 2, name: 'Sarah Jenkins', time: '5 Days Ago', text: "Candidate demonstrated strong leadership during the group whiteboard session. Soft skills are a major plus here.", avatar: null },
-];
 
 function CandidateDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [feedback, setFeedback] = useState('');
+  
+  const [candidate, setCandidate] = useState(null);
+  const [roadmap, setRoadmap] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCandidate = async () => {
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+        const res = await fetch(`http://localhost:3000/api/trainer/candidate/${id}`, {
+          headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+        });
+        const data = await res.json();
+        
+        if (data && data.candidate) {
+          setCandidate(data.candidate);
+          setRoadmap(data.candidate.roadmapId);
+          setComments(data.comments || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch candidate details:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCandidate();
+  }, [id]);
+
+  const handleComplete = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+      const res = await fetch(`http://localhost:3000/api/trainer/candidate/${id}/complete`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ comment: feedback })
+      });
+      if (res.ok) {
+        alert("Training Completed!");
+        navigate('/trainer/dashboard');
+      } else {
+        alert("Failed to mark as completed.");
+      }
+    } catch (err) {
+      console.error("Error submitting completion:", err);
+      alert("Failed to submit.");
+    }
+  };
+
+  if (loading) return <div className="text-white p-10 min-h-screen text-center mt-20 text-xl font-bold">Loading Data...</div>;
+  if (!candidate) return <div className="text-white p-10 min-h-screen text-center mt-20 text-xl font-bold">Candidate not found</div>;
+
+  let aiData = { skills: [], experience: '', projects: [] };
+  try { if (candidate.aiInsight) aiData = JSON.parse(candidate.aiInsight); } catch(e){}
+
+  const letters = candidate.name ? candidate.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '??';
 
   return (
     <div className="p-10 space-y-12">
@@ -27,14 +74,14 @@ function CandidateDetail() {
             <span className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] uppercase tracking-[0.2em] font-black text-primary">
               Active Candidate
             </span>
-            <span className="text-slate-500 font-bold text-xs">ID: SP-99201</span>
+            <span className="text-slate-500 font-bold text-xs">ID: {candidate._id.substring(candidate._id.length - 8).toUpperCase()}</span>
           </div>
           <h1 className="text-white font-black tracking-tight leading-none mb-4" style={{ fontSize: '4.5rem' }}>
-            Elena Rostova
+            {candidate.name || 'Unknown'}
           </h1>
           <p className="text-xl text-slate-400 font-medium max-w-2xl leading-relaxed">
-            Senior Frontend Engineer transitioning into Full-Stack AI Orchestration. Currently in{' '}
-            <span className="text-primary italic">Advanced React Systems</span> module.
+            {candidate.roleApplied || 'Unspecified'} Engineer. Status:{' '}
+            <span className="text-primary italic">{candidate.status || 'Pending'}</span>.
           </p>
         </div>
         <div className="flex gap-4 flex-shrink-0">
@@ -56,20 +103,24 @@ function CandidateDetail() {
             <div className="space-y-6">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-3">
                 <span className="material-symbols-outlined text-xs">analytics</span>
-                Resume Highlights
+                Projects & Highlights
               </h3>
-              <ul className="space-y-4">
-                {[
-                  '6+ years experience in large-scale React architectures.',
-                  'Led the modernization of legacy financial dashboards.',
-                  'Consistent top 5% performance in technical assessments.',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-slate-300 text-sm leading-relaxed font-medium">
-                    <span className="material-symbols-outlined text-primary text-xl flex-shrink-0">verified</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              
+              {(aiData.projects && aiData.projects.length > 0) ? (
+                <ul className="space-y-4 pt-4">
+                  {aiData.projects.map((item, i) => {
+                     const title = typeof item === 'string' ? item : (item.title || 'Project');
+                     return (
+                      <li key={i} className="flex items-start gap-3 text-slate-300 text-sm leading-relaxed font-medium">
+                        <span className="material-symbols-outlined text-primary text-xl flex-shrink-0">verified</span>
+                        {title}
+                      </li>
+                     )
+                  })}
+                </ul>
+              ) : (
+                <p className="text-slate-500 italic text-sm">No specific projects identified.</p>
+              )}
             </div>
             <div className="space-y-6">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-3">
@@ -77,79 +128,93 @@ function CandidateDetail() {
                 Top Skills
               </h3>
               <div className="flex flex-wrap gap-2">
-                {['TypeScript', 'React / Next.js', 'Node.js', 'GraphQL'].map((skill) => (
+                {(aiData.skills || []).map((skill) => (
                   <span key={skill} className="px-4 py-2 rounded-xl bg-[#0b1326] border border-white/5 text-xs font-bold text-slate-400">
                     {skill}
                   </span>
                 ))}
-                <span className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/30 text-xs font-bold text-primary animate-pulse flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                  LLM Integration
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-10 border-t border-white/5">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-3">
-              <span className="material-symbols-outlined text-xs">insights</span>
-              AI Gap Analysis
-            </h3>
-            <div className="p-8 rounded-3xl bg-[#0b1326]/50 border border-white/5 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                 <span className="material-symbols-outlined text-7xl text-white">neurology</span>
-              </div>
-              <p className="text-slate-200 text-lg leading-relaxed italic mb-6 font-medium relative z-10">
-                "Elena shows high technical proficiency in core engineering but requires exposure to vector databases and prompt engineering for full Full-Stack AI readiness."
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="flex -space-x-2">
-                  {[1, 2].map((i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-[#1a2236] flex items-center justify-center text-[10px] font-bold text-slate-500">M{i}</div>
-                  ))}
-                </div>
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">Suggested by 2 Senior Trainers</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* Learning Roadmap */}
-        <section className="lg:col-span-4 bg-[#1a2236] border border-white/5 rounded-[2.5rem] p-10 shadow-2xl">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-10 flex items-center gap-3">
+        <section className="lg:col-span-4 bg-[#1a2236] border border-white/5 rounded-[2.5rem] p-10 shadow-2xl flex flex-col">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-3">
             <span className="material-symbols-outlined text-xs">route</span>
             Learning Roadmap
           </h3>
-          <div className="relative space-y-10">
-            <div className="absolute left-5 top-2 bottom-2 w-0.5 bg-white/5"></div>
-            {roadmapSteps.map((step) => (
-              <div key={step.id} className="relative flex gap-6">
-                <div
-                  className={`z-10 w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 border ${
-                    step.state === 'done'
-                      ? 'bg-primary text-on-primary border-primary shadow-[0_0_20px_rgba(128,131,255,0.3)]'
-                      : step.state === 'active'
-                      ? 'bg-[#0b1326] border-primary text-primary shadow-[0_0_20px_rgba(128,131,255,0.1)]'
-                      : 'bg-[#0b1326] border-white/5 text-slate-600'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">{step.icon}</span>
+          
+          {(!roadmap?.content || roadmap.content.length === 0) && (
+            <p className="text-slate-500 text-sm italic">No roadmap steps generated yet.</p>
+          )}
+
+          <div className="space-y-8 flex-1 overflow-y-auto max-h-[480px] pr-1">
+            {(roadmap?.content || []).map((phase, phaseIdx) => {
+              const doneTasks = phase.tasks?.filter(t => t.completed).length || 0;
+              const totalTasks = phase.tasks?.length || 0;
+              const phaseProgress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+              return (
+                <div key={phaseIdx} className="space-y-3">
+                  {/* Phase Header */}
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-white uppercase tracking-wider">{phase.title}</h4>
+                    <span className="text-[10px] font-bold text-primary">{phaseProgress}%</span>
+                  </div>
+                  {/* Phase progress bar */}
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${phaseProgress}%` }}></div>
+                  </div>
+                  {/* Tasks */}
+                  <div className="space-y-2 pl-1">
+                    {(phase.tasks || []).map((task, taskIdx) => (
+                      <label
+                        key={taskIdx}
+                        className="flex items-start gap-3 cursor-pointer group p-2 rounded-xl hover:bg-white/5 transition-all"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+                          try {
+                            const res = await fetch(`http://localhost:3000/api/trainer/roadmap/${roadmap._id}/task/toggle`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                              },
+                              body: JSON.stringify({ phaseIndex: phaseIdx, taskIndex: taskIdx })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              // Update local state optimistically
+                              setRoadmap(prev => {
+                                const updated = JSON.parse(JSON.stringify(prev));
+                                updated.content[phaseIdx].tasks[taskIdx].completed = data.completed;
+                                return updated;
+                              });
+                            }
+                          } catch (err) {
+                            console.error('Toggle task error:', err);
+                          }
+                        }}
+                      >
+                        <div className={`w-4 h-4 mt-0.5 rounded flex-shrink-0 border-2 flex items-center justify-center transition-all ${task.completed ? 'bg-primary border-primary' : 'border-slate-600 group-hover:border-primary/50'}`}>
+                          {task.completed && (
+                            <span className="material-symbols-outlined text-on-primary" style={{ fontSize: '10px', fontVariationSettings: "'wght' 700" }}>check</span>
+                          )}
+                        </div>
+                        <span className={`text-xs leading-relaxed font-medium transition-all ${task.completed ? 'line-through text-slate-600' : 'text-slate-300 group-hover:text-white'}`}>
+                          {task.title}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4 className={`font-bold text-sm ${step.state === 'active' ? 'text-primary' : step.state === 'done' ? 'text-white' : 'text-slate-500'}`}>
-                    {step.label}
-                  </h4>
-                  <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${step.state === 'active' ? 'text-slate-400' : 'text-slate-600'}`}>{step.sub}</p>
-                  {step.progress && (
-                    <div className="mt-4 w-full max-w-[120px] h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div className="bg-primary h-full rounded-full" style={{ width: `${step.progress}%` }}></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <button className="w-full mt-12 py-4 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white hover:bg-white/[0.02] transition-all">
+
+          <button className="w-full mt-6 py-4 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white hover:bg-white/[0.02] transition-all">
             View Full Curriculum
           </button>
         </section>
@@ -160,30 +225,34 @@ function CandidateDetail() {
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6">Add Trainer Insight</h3>
             <textarea
               className="w-full bg-[#0b1326] border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary/20 text-white text-sm p-6 placeholder-slate-600 transition-all outline-none resize-none flex-grow"
-              placeholder="What's your assessment of Elena's progress?"
+              placeholder="What's your assessment of the progress?"
               rows={5}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
             />
-            <button className="w-full mt-6 py-4 bg-primary/10 border border-primary/20 text-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary/20 transition-all active:scale-95">
-              Submit Assessment
+            <button 
+              onClick={handleComplete}
+              className="w-full mt-6 py-4 bg-primary/10 border border-primary/20 text-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary/20 transition-all active:scale-95"
+            >
+              Submit & Mark Complete
             </button>
           </div>
 
           <div className="bg-[#1a2236] border border-white/5 rounded-3xl p-8 lg:col-span-2">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-8">Recent History</h3>
             <div className="space-y-6">
-              {insights.map((insight) => (
-                <div key={insight.id} className="flex gap-6 p-6 bg-[#0b1326]/50 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
+              {comments.length === 0 && <p className="text-slate-500 text-sm">No comments yet.</p>}
+              {comments.map((insight) => (
+                <div key={insight._id} className="flex gap-6 p-6 bg-[#0b1326]/50 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
                   <div className="w-12 h-12 rounded-2xl bg-[#1a2236] flex items-center justify-center text-primary font-bold shadow-lg">
-                    {insight.name.split(' ').map(n=>n[0]).join('')}
+                    C
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-white text-sm font-bold">{insight.name}</h4>
-                      <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">{insight.time}</span>
+                      <h4 className="text-white text-sm font-bold">Trainer Note</h4>
+                      <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">{new Date(insight.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed font-medium">{insight.text}</p>
+                    <p className="text-sm text-slate-400 leading-relaxed font-medium">{insight.comment}</p>
                   </div>
                 </div>
               ))}

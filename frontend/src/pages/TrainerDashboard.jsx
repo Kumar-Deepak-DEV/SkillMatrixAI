@@ -1,22 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomDropdown from '../components/CustomDropdown';
-
-const ALL_CANDIDATES = [
-  { id: 1, initials: 'RS', name: 'Rahul Sharma', applied: 'Applied 2h ago', role: 'Frontend Developer', score: 98, status: 'Pending', color: 'text-primary' },
-  { id: 2, initials: 'AP', name: 'Ananya Patel', applied: 'Applied 5h ago', role: 'Backend Dev', score: 84, status: 'Approved', color: 'text-secondary' },
-  { id: 3, initials: 'VK', name: 'Vikram Kumar', applied: 'Applied yesterday', role: 'Data Analyst', score: 72, status: 'Pending', color: 'text-tertiary' },
-  { id: 4, initials: 'SM', name: 'Sanya Malhotra', applied: 'Applied yesterday', role: 'Fullstack Dev', score: 92, status: 'Approved', color: 'text-primary' },
-  { id: 5, initials: 'AJ', name: 'Arjun Johar', applied: 'Applied 3d ago', role: 'DevOps Engineer', score: 88, status: 'Pending', color: 'text-secondary' },
-  { id: 6, initials: 'ND', name: 'Neha Dixit', applied: 'Applied 4d ago', role: 'UI/UX Designer', score: 95, status: 'Approved', color: 'text-primary' },
-  { id: 7, initials: 'RK', name: 'Rohan Kapoor', applied: 'Applied 5d ago', role: 'QA Engineer', score: 76, status: 'Pending', color: 'text-tertiary' },
-  { id: 8, initials: 'PS', name: 'Priya Singh', applied: 'Applied 1w ago', role: 'Product Manager', score: 91, status: 'Approved', color: 'text-secondary' },
-];
 
 function TrainerDashboard() {
   const navigate = useNavigate();
   const [showSuggestion, setShowSuggestion] = useState(true);
   
+  // Data State
+  const [candidates, setCandidates] = useState([]);
+  const [stats, setStats] = useState({ 
+    total: 0, 
+    pending: 0, 
+    inTraining: 0, 
+    completed: 0
+  });
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
@@ -24,11 +22,67 @@ function TrainerDashboard() {
   // Filter State
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const filteredCandidates = useMemo(() => {
-    return ALL_CANDIDATES.filter(c => statusFilter === 'All' || c.status === statusFilter);
-  }, [statusFilter]);
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+        const res = await fetch('http://localhost:3000/api/trainer/dashboard', {
+          headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+        });
+        const data = await res.json();
+        
+        if (data && data.stats) {
+          setStats({
+            total: data.stats.total || 0,
+            pending: data.stats.pending || 0,
+            inTraining: data.stats.inTraining || 0,
+            completed: data.stats.completed || 0
+          });
 
-  const totalPages = Math.ceil(filteredCandidates.length / rowsPerPage);
+          if (data.roadmaps) {
+            const formatted = data.roadmaps.map(roadmap => {
+              const c = roadmap.candidateId || {};
+              const candidateStatus = (c.status || 'PENDING').toUpperCase();
+              const statusColors = {
+                'PENDING':     'text-secondary',
+                'IN REVIEW':   'text-amber-400',
+                'IN_PROGRESS': 'text-secondary',
+                'IN TRAINING': 'text-secondary',
+                'APPROVED':    'text-emerald-400',
+                'REJECTED':    'text-error',
+                'COMPLETED':   'text-primary'
+              };
+              
+              const initials = c.name ? c.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '??';
+              const appliedDate = roadmap.createdAt ? new Date(roadmap.createdAt).toLocaleDateString() : 'Unknown';
+              
+              return {
+                id: c._id,
+                roadmapId: roadmap._id,
+                initials,
+                name: c.name || 'Unknown Candidate',
+                applied: `Applied ${appliedDate}`,
+                role: c.roleApplied || 'Unspecified',
+                score: roadmap.aiConfidence || 0,
+                status: candidateStatus.charAt(0) + candidateStatus.slice(1).toLowerCase(),
+                color: statusColors[candidateStatus] || 'text-tertiary'
+              };
+            });
+            setCandidates(formatted);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch trainer dashboard:", err);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter(c => statusFilter === 'All' || c.status.toLowerCase() === statusFilter.toLowerCase());
+  }, [statusFilter, candidates]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCandidates.length / rowsPerPage));
   const currentData = filteredCandidates.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const handlePageChange = (newPage) => {
@@ -51,10 +105,10 @@ function TrainerDashboard() {
       {/* Summary Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { icon: 'group', label: 'Total Candidates', value: '1,284', sub: '↑ 12%', subColor: 'text-emerald-400', barWidth: 'w-3/4', barColor: 'bg-primary' },
-          { icon: 'pending_actions', label: 'Pending Roadmaps', value: '42', sub: 'Needs Review', subColor: 'text-secondary animate-pulse', barWidth: 'w-1/3', barColor: 'bg-secondary' },
-          { icon: 'verified', label: 'Approved', value: '892', sub: 'Last 30 days', subColor: 'text-slate-500', barWidth: 'w-5/6', barColor: 'bg-primary-container' },
-          { icon: 'block', label: 'Rejected', value: '16', sub: '-4% from avg', subColor: 'text-error', barWidth: 'w-1/6', barColor: 'bg-error-container/40' },
+          { icon: 'group', label: 'Total Candidates', value: stats.total.toString(), sub: 'All records', subColor: 'text-emerald-400', barWidth: 'w-full', barColor: 'bg-primary' },
+          { icon: 'pending_actions', label: 'Pending Review', value: stats.pending.toString(), sub: 'Needs Review', subColor: 'text-secondary animate-pulse', barWidth: 'w-1/3', barColor: 'bg-secondary' },
+          { icon: 'school', label: 'In Training', value: stats.inTraining.toString(), sub: 'Active', subColor: 'text-slate-400', barWidth: 'w-5/6', barColor: 'bg-primary-container' },
+          { icon: 'verified', label: 'Completed', value: stats.completed.toString(), sub: 'Finished', subColor: 'text-primary', barWidth: 'w-1/6', barColor: 'bg-primary/40' },
         ].map((card) => (
           <div key={card.label} className="bg-[#1a2236] p-6 rounded-2xl relative overflow-hidden group hover:bg-[#2d3449]/50 transition-all duration-300 border border-white/5">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-white">

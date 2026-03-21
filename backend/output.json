@@ -1,0 +1,121 @@
+{
+  "name": "VASARA SUJAL",
+  "email": "vasarasujal.cg@gmail.com",
+  "role": "Full-stack Developer",
+  "skills": [
+    "HTML5",
+    "CSS3",
+    "React.js",
+    "Next.js",
+    "Responsive Web Design",
+    "UI/UX Fundamentals",
+    "Node.js",
+    "RESTful APIs",
+    "Express.js",
+    "Authentication & Authorization",
+    "JavaScript",
+    "C",
+    "C++",
+    "Java",
+    "MongoDB",
+    "MySQL",
+    "PostgreSQL (Basic)",
+    "Git",
+    "GitHub",
+    "Postman",
+    "VScode",
+    "Vercel",
+    "Netlify",
+    "Render",
+    "Object-Oriented Programming (OOP)",
+    "Data Structures & Algorithms Basics",
+    "DBMS Concepts",
+    "Operating Systems",
+    "Process Scheduling",
+    "Multithreading Basics",
+    "Cloud Computing Concepts",
+    "Virtual Machines"
+  ],
+  "experience": "B.Tech student (2024-2028) with strong academic performance (9.81 CGPA). Developed multiple full-stack applications like 'King Hub', 'Rental Management Web App', and 'Smart Emergency Blood Network' using the MERN stack (React, Node.js, Express.js, MongoDB). Implemented features such as payment processing (Stripe), email OTP verification, and role-based REST APIs. Participated in 5+ hackathons, demonstrating rapid full-stack development, teamwork, and problem-solving skills, including reaching the final round of the Odoo × Gandhinagar Hackathon.",
+  "projects": [
+    "King Hub – Online Food Delivery Platform (React, Tailwind CSS, Node.js, Express.js, MongoDB, REST APIs)",
+    "Rental Management Web App (Node.js, Express, MongoDB, React, Stripe, Nodemailer)",
+    "Smart Emergency Blood Network (Node.js, Express, MongoDB, React, secure role-based REST APIs)",
+    "Instagram clone",
+    "Coding Gita Website clone"
+  ],
+  "roadmap": [
+    {
+      "title": "Phase 1: Core Web Development Mastery & CS Fundamentals Deep Dive",
+      "tasks": [
+        {
+          "title": "Master advanced JavaScript concepts (prototypes, closures, async/await, event loop)."
+        },
+        {
+          "title": "Deepen React knowledge: Advanced hooks, Context API, state management libraries (Redux/Zustand), performance optimization techniques."
+        },
+        {
+          "title": "Explore Next.js advanced features: Server-Side Rendering (SSR), Static Site Generation (SSG), API routes, advanced data fetching strategies, authentication with NextAuth.js."
+        },
+        {
+          "title": "Strengthen Node.js/Express.js backend: Advanced middleware, robust error handling, security best practices (JWT, CORS, rate limiting, input validation)."
+        },
+        {
+          "title": "Advanced Data Structures & Algorithms: Focus on graph algorithms, dynamic programming, common interview patterns, and competitive programming."
+        },
+        {
+          "title": "Database Optimization: Indexing strategies for MongoDB/SQL, query performance tuning, ORM/ODM best practices, basic database sharding concepts."
+        },
+        {
+          "title": "Implement comprehensive Unit & Integration Testing for both frontend (React Testing Library, Jest) and backend (Jest, Supertest)."
+        }
+      ]
+    },
+    {
+      "title": "Phase 2: Cloud, DevOps & Scalable Architectures",
+      "tasks": [
+        {
+          "title": "Cloud Provider Mastery: Dive deep into one major cloud (AWS or Azure), focusing on services like EC2, S3, RDS/DynamoDB, Lambda, API Gateway, VPC, IAM, CloudFront."
+        },
+        {
+          "title": "Containerization with Docker: Learn to containerize applications, manage multi-container apps with Docker Compose, and understand Docker networking."
+        },
+        {
+          "title": "CI/CD Implementation: Set up automated build, test, and deployment pipelines using GitHub Actions, GitLab CI/CD, or a cloud-native service."
+        },
+        {
+          "title": "Introduction to Microservices & System Design: Understand microservices architecture principles, explore monolithic vs. microservices trade-offs, learn basic system design concepts (load balancing, caching, message queues, API gateways)."
+        },
+        {
+          "title": "Explore Infrastructure as Code (IaC): Basic understanding of Terraform or CloudFormation for resource provisioning and management."
+        },
+        {
+          "title": "Learn a secondary backend language/framework (e.g., Python with Django/Flask or Go with Gin) for broader applicability and architectural perspective."
+        }
+      ]
+    },
+    {
+      "title": "Phase 3: Specialization & Advanced Production Practices",
+      "tasks": [
+        {
+          "title": "Specialization Path: Identify and commit to a specialization (e.g., Senior Frontend Engineer, Backend/API Specialist, Cloud Engineer, or Full-stack with a specific domain focus like FinTech or AI integration)."
+        },
+        {
+          "title": "Advanced Frontend (if chosen): Web performance audits and optimization, Progressive Web App (PWA) development, accessibility (A11y) best practices, advanced animation libraries, WebAssembly fundamentals."
+        },
+        {
+          "title": "Advanced Backend (if chosen): GraphQL APIs, real-time communication (WebSockets, Socket.IO), message brokers (Kafka/RabbitMQ), distributed transaction patterns, event-driven architectures."
+        },
+        {
+          "title": "Advanced DevOps/Cloud (if chosen): Kubernetes orchestration, serverless patterns and deployments, advanced monitoring (Prometheus/Grafana), centralized logging (ELK stack), chaos engineering basics."
+        },
+        {
+          "title": "Security Best Practices: In-depth understanding of OWASP Top 10 mitigation strategies, secure coding practices, basic penetration testing techniques."
+        },
+        {
+          "title": "Contribute to Open Source or Lead a Major Personal Project: Build a complex, production-ready application demonstrating advanced architecture, scalability, and adherence to best practices. Seek internship/job roles aligned with chosen specialization."
+        }
+      ]
+    }
+  ]
+}

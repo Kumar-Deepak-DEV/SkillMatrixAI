@@ -10,6 +10,7 @@ import Candidates from './pages/Candidates';
 import CandidateDetail from './pages/CandidateDetail';
 import AnalysisResults from './pages/AnalysisResults';
 import Register from './pages/Register';
+import HRCandidateProfile from './pages/HRCandidateProfile';
 import HRLayout from './components/HRLayout';
 import TrainerLayout from './components/TrainerLayout';
 
@@ -28,7 +29,7 @@ function App() {
           <Route index element={<Navigate to="/hr/upload" replace />} />
           <Route path="upload" element={<UploadResumes />} />
           <Route path="status" element={<HRDashboard />} />
-          <Route path="candidate/:id" element={<CandidateDetail />} />
+          <Route path="candidate/:id" element={<HRCandidateProfile />} />
         </Route>
 
         {/* Trainer Routes */}

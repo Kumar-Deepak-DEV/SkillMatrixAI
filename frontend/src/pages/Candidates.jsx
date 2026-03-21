@@ -1,22 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomDropdown from '../components/CustomDropdown';
-
-const ALL_CANDIDATES = [
-  { id: 1, name: 'Rahul Sharma', email: 'rahul.s@skillpath.ai', role: 'Frontend Developer', status: 'Approved', statusClass: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20', progress: 82, avatar: null },
-  { id: 2, name: 'Ananya Patel', email: 'ananya.p@skillpath.ai', role: 'Staff Backend Dev', status: 'Ready', statusClass: 'bg-primary/10 text-primary border-primary/20', progress: 100, avatar: null },
-  { id: 3, name: 'Vikram Kumar', email: 'vikram.k@skillpath.ai', role: 'Data Analyst', status: 'In Training', statusClass: 'bg-secondary/10 text-secondary border-secondary/20', progress: 68, avatar: null },
-  { id: 4, name: 'Sanya Malhotra', email: 'sanya.m@skillpath.ai', role: 'Fullstack Dev', status: 'Stuck', statusClass: 'bg-error/10 text-error border-error/20', progress: 12, avatar: null },
-  { id: 5, name: 'Arjun Johar', email: 'arjun.j@skillpath.ai', role: 'DevOps Engineer', status: 'Review', statusClass: 'bg-surface-container-highest text-outline border-outline-variant/20', progress: 89, avatar: null },
-  { id: 6, name: 'Neha Dixit', email: 'neha.d@skillpath.ai', role: 'UI/UX Designer', status: 'Approved', statusClass: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20', progress: 45, avatar: null },
-  { id: 7, name: 'Rohan Kapoor', email: 'rohan.k@skillpath.ai', role: 'QA Engineer', status: 'Pending', statusClass: 'bg-surface-container-highest text-outline border-outline-variant/20', progress: 5, avatar: null },
-  { id: 8, name: 'Priya Singh', email: 'priya.s@skillpath.ai', role: 'Product Manager', status: 'In Training', statusClass: 'bg-secondary/10 text-secondary border-secondary/20', progress: 30, avatar: null },
-];
 
 function Candidates() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   
+  // Data State
+  const [candidates, setCandidates] = useState([]);
+  const [stats, setStats] = useState({ total: 0, inTraining: 0, processed: 0 });
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
@@ -24,13 +17,61 @@ function Candidates() {
   // Filter State
   const [statusFilter, setStatusFilter] = useState('All');
 
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+        const res = await fetch('http://localhost:3000/api/trainer/candidates', {
+          headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+        });
+        const data = await res.json();
+        
+        if (data && data.data) {
+          const formatted = data.data.map(c => {
+             const statusMap = {
+               'PENDING':     { label: 'Pending',     class: 'bg-surface-container-highest text-outline border-outline-variant/20' },
+               'IN REVIEW':   { label: 'In Review',   class: 'bg-amber-400/10 text-amber-400 border-amber-400/20' },
+               'IN_PROGRESS': { label: 'In Progress', class: 'bg-secondary/10 text-secondary border-secondary/20' },
+               'IN TRAINING': { label: 'In Training', class: 'bg-secondary/10 text-secondary border-secondary/20' },
+               'APPROVED':    { label: 'Approved',    class: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20' },
+               'REJECTED':    { label: 'Rejected',    class: 'bg-error/10 text-error border-error/20' },
+               'COMPLETED':   { label: 'Completed',   class: 'bg-primary/10 text-primary border-primary/20' }
+             };
+             
+             const st = statusMap[(c.status || 'PENDING').toUpperCase()] || statusMap['PENDING'];
+             
+             return {
+                id: c._id,
+                name: c.name || 'Unknown Candidate',
+                email: c.email || 'No email',
+                role: c.roleApplied || 'Unspecified',
+                status: st.label,
+                statusClass: st.class,
+                progress: c.matchScore || Math.floor(c.aiConfidence || 0),
+                avatar: null
+             };
+          });
+          setCandidates(formatted);
+          setStats({
+            total: formatted.length,
+            inTraining: formatted.filter(f => f.status === 'In Training').length,
+            processed: formatted.filter(f => f.status !== 'Review').length
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch candidates:", err);
+      }
+    };
+    fetchCandidates();
+  }, []);
+
   const filteredCandidates = useMemo(() => {
-    return ALL_CANDIDATES.filter(c => {
+    return candidates.filter(c => {
       const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.role.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [search, statusFilter]);
+  }, [search, statusFilter, candidates]);
 
   const totalPages = Math.ceil(filteredCandidates.length / rowsPerPage);
   const currentData = filteredCandidates.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -82,16 +123,16 @@ function Candidates() {
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="p-8 rounded-3xl bg-[#1a2236] border border-white/5 flex flex-col justify-between h-40 group hover:border-primary/30 transition-all">
           <span className="text-xs font-bold tracking-widest text-primary uppercase">Total Talent</span>
-          <span className="text-4xl font-black text-white">1,284</span>
+          <span className="text-4xl font-black text-white">{stats.total}</span>
         </div>
         <div className="p-8 rounded-3xl bg-[#1a2236] border border-white/5 flex flex-col justify-between h-40 group hover:border-secondary/30 transition-all">
           <span className="text-xs font-bold tracking-widest text-secondary uppercase">In Training</span>
-          <span className="text-4xl font-black text-white">412</span>
+          <span className="text-4xl font-black text-white">{stats.inTraining}</span>
         </div>
         <div className="col-span-2 p-8 rounded-3xl bg-gradient-to-br from-[#1a2236] to-[#0b1326] border border-white/5 flex items-center gap-8 h-40">
           <div className="flex-1">
             <span className="text-xs font-bold tracking-widest text-slate-400 uppercase block mb-1">Approval Velocity</span>
-            <p className="text-sm text-slate-500 mb-4">Your AI agent processed 42 profiles today.</p>
+            <p className="text-sm text-slate-500 mb-4">Your AI agent processed {stats.processed} profiles today.</p>
             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
               <div className="h-full bg-primary w-3/4 shadow-[0_0_10px_rgba(128,131,255,0.4)]"></div>
             </div>
