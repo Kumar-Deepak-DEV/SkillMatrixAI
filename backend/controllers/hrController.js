@@ -7,19 +7,21 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const generateRoadmap = async (resumeText) => {
   const prompt = `
-Analyze this resume and return JSON:
+Analyze the following resume. First, extract the candidate's name, email, role, skills, experience, and projects.
+Then, based on their experience and skills, GENERATE a learning roadmap consisting of 3 to 4 phases for their career growth.
+Return ONLY valid JSON matching this exact structure:
 
 {
   "name": "Extract candidate name",
   "email": "Extract candidate email",
   "role": "Extract their main job title or role",
-  "skills": [],
-  "experience": "",
-  "projects": [],
+  "skills": ["skill 1", "skill 2"],
+  "experience": "Short summary",
+  "projects": ["project 1"],
   "roadmap": [
     {
-      "title": "",
-      "tasks": [{ "title": "" }]
+      "title": "Phase 1: [Phase Name]",
+      "tasks": [{ "title": "Specific learning task or milestone" }]
     }
   ]
 }
@@ -101,9 +103,14 @@ const uploadResume = async (req, res) => {
     const aiResponse = await generateRoadmap(textToParse);
     const roadmapData = aiResponse.roadmap || [];
 
+    const baseEmail = aiResponse.email || email;
+    const uniqueEmail = baseEmail 
+      ? `${baseEmail.split('@')[0]}+${Date.now()}@${baseEmail.split('@')[1] || 'skillpath.ai'}` 
+      : `candidate_${Date.now()}@skillpath.ai`;
+
     const candidate = await Candidate.create({
       name: aiResponse.name || name || 'Unknown Candidate',
-      email: aiResponse.email || email || `candidate_${Date.now()}@skillpath.ai`,
+      email: uniqueEmail,
       roleApplied: aiResponse.role || 'Unspecified',
       assignedTrainer,
       aiInsight: JSON.stringify({
