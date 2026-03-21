@@ -15,14 +15,14 @@ const getDashboard = async (req, res) => {
       Candidate.countDocuments({ status: "COMPLETED" })
     ]);
 
-    const pendingRoadmaps = await Roadmap.find({ status: "PENDING" })
-      .populate("candidateId", "name email")
+    const recentRoadmaps = await Roadmap.find({})
+      .populate("candidateId", "name email roleApplied matchScore")
       .sort({ createdAt: -1 })
-      .limit(10);
+      .limit(20);
 
     res.json({
       stats: { pending, approved, rejected, completed },
-      pendingRoadmaps
+      roadmaps: recentRoadmaps
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -68,22 +68,14 @@ const reviewRoadmap = async (req, res) => {
 // ===============================
 const getCandidates = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10;
-    const skip = (page - 1) * limit;
-
     const candidates = await Candidate.find()
       .populate("roadmapId")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Candidate.countDocuments();
+      .sort({ createdAt: -1 });
 
     res.json({
       data: candidates,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit)
+      currentPage: 1,
+      totalPages: 1
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

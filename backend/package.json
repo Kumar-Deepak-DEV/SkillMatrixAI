@@ -9,6 +9,8 @@
   "author": "Qubit Coderz",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^1.46.0",
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
