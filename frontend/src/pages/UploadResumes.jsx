@@ -12,29 +12,52 @@ function UploadResumes() {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       setSelectedFiles(files);
-      startProcessing();
+      uploadToBackend(files[0]);
     }
   };
 
-  const startProcessing = () => {
+  const uploadToBackend = async (file) => {
     setIsProcessing(true);
     setUploadProgress(0);
     
-    // Simulate upload progress
+    // Simulate upload progress capping at 90%
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
+      setUploadProgress(prev => (prev >= 90 ? 90 : prev + 10));
+    }, 400);
 
-    // After simulation, stay in "Processing" state until manually navigating or showing success
-    setTimeout(() => {
-      // We could navigate automatically, but let's show a success state first
-    }, 2500);
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      // Backend candidate schema requires name and email. We generate dummy unique ones here.
+      formData.append('name', file.name.split('.')[0] || 'Candidate ' + Math.floor(Math.random() * 1000));
+      formData.append('email', `candidate_${Date.now()}@skillpath.ai`);
+
+      // We need authorization token if not using a session cookie
+      const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+
+      const response = await fetch('http://localhost:3000/api/hr/upload', {
+        method: 'POST',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      
+      clearInterval(interval);
+      setUploadProgress(100);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Upload failed');
+      }
+
+    } catch (error) {
+      clearInterval(interval);
+      console.error("Upload error:", error);
+      alert('Error analyzing resume: ' + error.message + '\nNote: Ensure API key has sufficient quota.');
+      setIsProcessing(false);
+    }
   };
 
   const handleBrowseClick = () => {

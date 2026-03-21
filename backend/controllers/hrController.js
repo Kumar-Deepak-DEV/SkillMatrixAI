@@ -1,6 +1,7 @@
 const Candidate = require('../models/Candidate');
 const Roadmap = require('../models/Roadmap');
 const OpenAI = require("openai");
+const { extractText } = require('../services/resumeParser');
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -62,12 +63,18 @@ const uploadResume = async (req, res) => {
   try {
     const { name, email, assignedTrainer, resumeText } = req.body;
 
-    if (!resumeText) {
-      return res.status(400).json({ success: false, message: "Please provide resume text." });
+    let textToParse = resumeText;
+
+    if (req.file) {
+      textToParse = await extractText(req.file.path);
+    }
+
+    if (!textToParse) {
+      return res.status(400).json({ success: false, message: "Please provide resume text or upload a file." });
     }
 
     // Generate Roadmap using AI
-    const aiResponse = await generateRoadmap(resumeText);
+    const aiResponse = await generateRoadmap(textToParse);
     const roadmapData = aiResponse.roadmap || [];
 
     const candidate = await Candidate.create({

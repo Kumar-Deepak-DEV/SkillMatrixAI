@@ -1,21 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomDropdown from '../components/CustomDropdown';
-
-const ALL_CANDIDATES = [
-  { id: 1, name: 'Alex Chen', email: 'alex.chen@skillpath.ai', role: 'Senior Fullstack', match: 65, status: 'In Training', color: 'text-secondary' },
-  { id: 2, name: 'Ananya Mehta', email: 'mehta.a@skillpath.ai', role: 'Data Scientist', match: 82, status: 'Approved', color: 'text-primary' },
-  { id: 3, name: 'Marcus Thorne', email: 'm.thorne@skillpath.ai', role: 'DevOps Engineer', match: 45, status: 'Completed', color: 'text-emerald-400' },
-  { id: 4, name: 'Rahul Sharma', email: 'rahul.s@skillpath.ai', role: 'Frontend Developer', match: 91, status: 'Approved', color: 'text-primary' },
-  { id: 5, name: 'Sanya Malhotra', email: 'sanya.m@skillpath.ai', role: 'Fullstack Dev', match: 78, status: 'In Training', color: 'text-secondary' },
-  { id: 6, name: 'Vikram Kumar', email: 'vikram.k@skillpath.ai', role: 'Data Analyst', match: 55, status: 'Pending', color: 'text-tertiary' },
-  { id: 7, name: 'Neha Dixit', email: 'neha.d@skillpath.ai', role: 'UI/UX Designer', match: 88, status: 'Approved', color: 'text-primary' },
-  { id: 8, name: 'Priya Singh', email: 'priya.s@skillpath.ai', role: 'Product Manager', match: 72, status: 'In Training', color: 'text-secondary' },
-];
 
 function HRDashboard() {
   const navigate = useNavigate();
   
+  // Data State
+  const [candidates, setCandidates] = useState([]);
+  const [stats, setStats] = useState({ total: 0, rejected: 0, approved: 0, inProgress: 0 });
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
@@ -23,11 +16,53 @@ function HRDashboard() {
   // Filter State
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const filteredCandidates = useMemo(() => {
-    return ALL_CANDIDATES.filter(c => statusFilter === 'All' || c.status === statusFilter);
-  }, [statusFilter]);
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+        const res = await fetch('http://localhost:3000/api/hr/dashboard', {
+          headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+        });
+        const data = await res.json();
+        if (data.success && data.recent) {
+          const statusColors = {
+            'PENDING': 'text-tertiary',
+            'APPROVED': 'text-primary',
+            'IN_PROGRESS': 'text-secondary',
+            'IN TRAINING': 'text-secondary',
+            'COMPLETED': 'text-emerald-400',
+            'REJECTED': 'text-rose-400'
+          };
 
-  const totalPages = Math.ceil(filteredCandidates.length / rowsPerPage);
+          const formatted = data.recent.map(c => ({
+             id: c._id,
+             name: c.name || 'Unknown',
+             email: c.email || 'No email',
+             role: c.roleApplied || 'Unspecified',
+             match: c.matchScore || 0,
+             status: c.status || 'PENDING',
+             color: statusColors[c.status?.toUpperCase()] || 'text-tertiary'
+          }));
+          setCandidates(formatted);
+          setStats({ 
+             total: data.total || 0, 
+             rejected: data.rejected || 0, 
+             approved: data.approved || 0, 
+             inProgress: data.inProgress || 0 
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard:", err);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter(c => statusFilter === 'All' || c.status.toLowerCase() === statusFilter.toLowerCase());
+  }, [statusFilter, candidates]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCandidates.length / rowsPerPage));
   const currentData = filteredCandidates.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const handlePageChange = (newPage) => {
@@ -50,10 +85,10 @@ function HRDashboard() {
       {/* Bento Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Total Candidates', value: '48', icon: 'groups', color: 'text-primary' },
-          { label: 'In Review', value: '12', icon: 'rate_review', color: 'text-tertiary' },
-          { label: 'In Training', value: '24', icon: 'model_training', color: 'text-secondary' },
-          { label: 'Completed', value: '12', icon: 'verified', color: 'text-emerald-400' }
+          { label: 'Total Candidates', value: stats.total.toString(), icon: 'groups', color: 'text-primary' },
+          { label: 'Pending', value: (stats.total - stats.approved - stats.rejected - stats.inProgress).toString(), icon: 'rate_review', color: 'text-tertiary' },
+          { label: 'In Training', value: stats.inProgress.toString(), icon: 'model_training', color: 'text-secondary' },
+          { label: 'Approved', value: stats.approved.toString(), icon: 'verified', color: 'text-emerald-400' }
         ].map((stat) => (
           <div key={stat.label} className="bg-[#1a2236] p-6 rounded-2xl group hover:bg-[#2d3449]/50 transition-all border border-white/5">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{stat.label}</p>
