@@ -13,24 +13,24 @@ function Login() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col md:flex-row bg-[#0b1326] font-['Inter']">
+    <main className="flex h-screen overflow-hidden flex-col md:flex-row bg-[#0b1326] font-['Inter']">
       {/* Left Section: Branding & Hero */}
-      <section className="hidden md:flex flex-1 relative overflow-hidden bg-[#131b2e] items-center justify-center p-16 border-r border-white/5">
+      <section className="hidden md:flex flex-1 relative overflow-hidden bg-[#131b2e] items-center justify-center p-12 border-r border-white/5">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary rounded-full blur-[150px]"></div>
           <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-secondary rounded-full blur-[180px]"></div>
         </div>
         
         <div className="relative z-10 max-w-xl w-full text-center">
-          <div className="mb-12 flex justify-center">
+          <div className="mb-8 flex justify-center">
              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-2xl">
                 <span className="material-symbols-outlined text-on-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>electric_bolt</span>
              </div>
           </div>
-          <h1 className="text-7xl font-black text-white tracking-tighter leading-none mb-8">
+          <h1 className="text-7xl font-black text-white tracking-tighter leading-none mb-6">
             SkillPath AI
           </h1>
-          <p className="text-xl text-slate-400 font-medium leading-relaxed mb-16 max-w-lg mx-auto">
+          <p className="text-xl text-slate-400 font-medium leading-relaxed mb-10 max-w-lg mx-auto">
             The intelligent engine for workforce transition and adaptive skills orchestration.
           </p>
           
@@ -46,14 +46,14 @@ function Login() {
       </section>
 
       {/* Right Section: Login Form */}
-      <section className="flex-1 flex items-center justify-center p-8 sm:p-16 bg-[#0b1326]">
+      <section className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-[#0b1326]">
         <div className="w-full max-w-[440px]">
-          <div className="mb-12">
-            <h2 className="text-4xl font-black text-white tracking-tight mb-3">Portal Login</h2>
+          <div className="mb-8">
+            <h2 className="text-4xl font-black text-white tracking-tight mb-2">Portal Login</h2>
             <p className="text-lg text-slate-500 font-medium">Enter your credentials to access your dashboard.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Work Email</label>
               <input 
@@ -85,7 +85,7 @@ function Login() {
             </button>
           </form>
 
-          <div className="relative my-12">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/5"></div>
             </div>
@@ -111,7 +111,7 @@ function Login() {
             </button>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
+          <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-3">
              <div className="flex gap-6">
                 <button onClick={() => navigate('/register')} className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors">Create Account</button>
                 <button className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors">Support Portal</button>

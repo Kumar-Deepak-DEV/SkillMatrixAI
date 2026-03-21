@@ -63,6 +63,15 @@
   body {
     @apply bg-surface-dim text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container font-inter;
   }
+
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 @layer utilities {

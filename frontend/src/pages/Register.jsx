@@ -13,7 +13,7 @@ function Register() {
       className="bg-surface text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container"
       style={{ fontFamily: 'Inter, sans-serif' }}
     >
-      <main className="flex min-h-screen">
+      <main className="flex h-screen overflow-hidden">
         {/* Left Side: Branding & Narrative */}
         <section
           className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12"
@@ -65,20 +65,20 @@ function Register() {
         </section>
 
         {/* Right Side: Registration Form */}
-        <section className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-surface">
+        <section className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 bg-surface">
           <div className="w-full max-w-xl">
-            <div className="mb-10 text-center lg:text-left">
+            <div className="mb-6 text-center lg:text-left">
               <h2 className="text-3xl font-bold text-on-surface mb-2 tracking-tight">Create your account</h2>
               <p className="text-on-surface-variant">Join the next generation of talent management.</p>
             </div>
 
             <form
-              className="space-y-8"
+              className="space-y-6"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (selectedRole === 'HR') navigate('/hr-dashboard');
                 else if (selectedRole === 'Trainer') navigate('/trainer-dashboard');
-                else navigate('/'); 
+                else navigate('/');
               }}
             >
               {/* User Identity Section */}
@@ -102,15 +102,14 @@ function Register() {
               </div>
 
               {/* Role Selection */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <label className="text-[10px] uppercase tracking-[0.05em] text-outline ml-1" style={{ fontFamily: 'Inter, sans-serif' }}>Select your role</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto lg:mx-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 max-w-md pt-2">
                   {/* Role: HR */}
                   <button
                     onClick={() => setSelectedRole('HR')}
-                    className={`group flex flex-col p-4 rounded-2xl bg-surface-container-low text-left transition-all active:scale-95 border ${
-                      selectedRole === 'HR' ? 'border-primary' : 'border-outline-variant/15 hover:bg-surface-container-high hover:border-primary/40'
-                    }`}
+                    className={`group flex flex-col p-4 rounded-2xl bg-surface-container-low text-left transition-all active:scale-95 border ${selectedRole === 'HR' ? 'border-primary' : 'border-outline-variant/15 hover:bg-surface-container-high hover:border-primary/40'
+                      }`}
                     type="button"
                   >
                     <span className="material-symbols-outlined text-primary mb-3">badge</span>
@@ -120,9 +119,8 @@ function Register() {
                   {/* Role: Trainer */}
                   <button
                     onClick={() => setSelectedRole('Trainer')}
-                    className={`group flex flex-col p-4 rounded-2xl bg-surface-container-low text-left transition-all active:scale-95 border ${
-                      selectedRole === 'Trainer' ? 'border-primary' : 'border-outline-variant/15 hover:bg-surface-container-high hover:border-primary/40'
-                    }`}
+                    className={`group flex flex-col p-4 rounded-2xl bg-surface-container-low text-left transition-all active:scale-95 border ${selectedRole === 'Trainer' ? 'border-primary' : 'border-outline-variant/15 hover:bg-surface-container-high hover:border-primary/40'
+                      }`}
                     type="button"
                   >
                     <span className="material-symbols-outlined text-primary mb-3">school</span>
@@ -141,7 +139,6 @@ function Register() {
                       className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary/50 transition-all outline-none"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      defaultValue="password123"
                     />
                     <button
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors focus:outline-none"
@@ -161,7 +158,6 @@ function Register() {
                       className="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary/50 transition-all outline-none"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      defaultValue="password123"
                     />
                     <button
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors focus:outline-none"
@@ -177,11 +173,11 @@ function Register() {
               </div>
 
               {/* Terms & Conditions */}
-              <label className="flex items-center space-x-3 cursor-pointer group">
+              <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => setAgreed(!agreed)}>
                 <div className="relative flex items-center justify-center">
                   <input
                     checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
+                    onChange={() => { }} // Controlled by div onClick for reliability
                     className="peer appearance-none w-5 h-5 bg-surface-container-low border-none rounded-lg checked:bg-primary transition-all cursor-pointer focus:ring-0 outline-none"
                     type="checkbox"
                   />
@@ -190,7 +186,7 @@ function Register() {
                   </span>
                 </div>
                 <span className="text-sm text-outline group-hover:text-on-surface-variant transition-colors">I agree to Terms &amp; Conditions</span>
-              </label>
+              </div>
 
               {/* CTA Section */}
               <div className="pt-4">
@@ -202,7 +198,7 @@ function Register() {
                   <span>Create Account</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
-                <div className="mt-8 text-center">
+                <div className="mt-4 text-center">
                   <p className="text-sm text-outline">
                     Already have an account?
                     <button
